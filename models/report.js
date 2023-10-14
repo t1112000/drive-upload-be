@@ -1,21 +1,25 @@
 const mongoose = require("mongoose");
 
-const fileSchema = new mongoose.Schema(
+const reportSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    p1: {
+      type: Number,
       required: true,
     },
-    type: {
-      type: String,
+    p2: {
+      type: Number,
+      required: true,
+    },
+    p4: {
+      type: Number,
+      required: true,
+    },
+    p8: {
+      type: Number,
       required: true,
     },
     file_size: {
       type: Number,
-      required: true,
-    },
-    url: {
-      type: String,
       required: true,
     },
   },
@@ -28,4 +32,4 @@ const fileSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("file", fileSchema);
+module.exports = mongoose.model("report", reportSchema);
