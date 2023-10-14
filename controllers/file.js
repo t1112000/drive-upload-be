@@ -7,16 +7,15 @@ const getFiles = async (req, res) => {
 
   const offset = (Number(page) - 1) * Number(pageSize);
 
-  const query = FileModel.find({
-    // name: `${search}`,
-  });
+  const query = {
+    name: new RegExp(search, "i"),
+  };
 
-  const files = await query.skip(offset).limit(pageSize);
-  const total = await query.countDocuments();
+  const files = await FileModel.find(query).skip(offset).limit(pageSize);
+  const total = await FileModel.count(query);
 
   return res.send({
     success: true,
-    message: "Get file list is successfully",
     total,
     data: files,
   });
@@ -24,6 +23,7 @@ const getFiles = async (req, res) => {
 
 const createFile = (req, res) => {
   console.log(req.body);
+  console.log(req);
   const {} = req.body;
 
   const file = new FileModel({
@@ -35,7 +35,6 @@ const createFile = (req, res) => {
   return file.save().then((newFile) => {
     return res.status(201).json({
       success: true,
-      message: "Created file is successfully",
       data: newFile,
     });
   });

@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const logger = require("morgan");
 
-const fileRouter = require("./server/routes/file");
+const fileRouter = require("./routes/file");
 
 const app = express();
 
