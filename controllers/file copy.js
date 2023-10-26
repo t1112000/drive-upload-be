@@ -62,14 +62,77 @@ const getFileTypes = async (req, res) => {
   });
 };
 
-const uploadParallel = async (file, pvm) => {
+const uploadParallel = async (file, pvm, origin) => {
+  // const fileTemp = fs.readFileSync(file.path);
+  // const chunks = [];
+
+  // const chunkSize = file.size / pvm;
+
+  // for (let i = 0; i < pvm; i++) {
+  //   chunks.push(
+  //     fileTemp.slice(
+  //       i * chunkSize,
+  //       pvm - 1 === i ? file.size : (i + 1) * chunkSize
+  //     )
+  //   );
+  // }
+
+  // console.log({ chunks });
+
+  // const Bucket = process.env.AWS_S3_BUCKET_NAME;
+  // const Key = file.originalname;
+  // const s3 = new AWS.S3();
+  // const start = performance.now();
+  // const upload = await s3
+  //   .createMultipartUpload({
+  //     Bucket,
+  //     Key,
+  //   })
+  //   .promise();
+
+  // const Parts = await Promise.all(
+  //   chunks.map(async (chunk, index) => {
+  //     const params = {
+  //       Bucket,
+  //       Key,
+  //       UploadId: upload.UploadId || "",
+  //       PartNumber: index + 1,
+  //       Body: chunk,
+  //     };
+  //     const uploadPart = await s3.uploadPart(params).promise();
+
+  //     return {
+  //       ETag: uploadPart.ETag,
+  //       PartNumber: index + 1,
+  //     };
+  //   })
+  // );
+
+  // const data = await s3
+  //   .completeMultipartUpload({
+  //     Bucket,
+  //     Key,
+  //     UploadId: upload.UploadId || "",
+  //     MultipartUpload: {
+  //       Parts,
+  //     },
+  //   })
+  //   .promise();
+  // const end = performance.now();
+
+  // return {
+  //   url: data.Location,
+  //   time: Number(Number((end - start) / 1000).toFixed(2)),
+  // };
+
+  const size5MB = 1024 * 1024 * 5;
   const buffer = await fs.readFileSync(file.path);
   const start = performance.now();
 
   const uploadParallel = new Upload({
     client: s3,
     queueSize: pvm,
-    partSize: 1024 * 1024 * 5,
+    partSize: size5MB,
     // partSize: Math.ceil(file.size / pvm), // optional size of each part
     leavePartsOnError: false,
     params: {
@@ -110,7 +173,7 @@ const createFile = async (req, res) => {
     // Handle upload file S3 8 PVM
     const { time: p8 } = await uploadParallel(file, 8, req.headers.origin);
 
-    const newFile = new FileModel({
+    const newFileModal = new FileModel({
       name: originalname,
       type: mimetype,
       file_size: size,
@@ -130,10 +193,10 @@ const createFile = async (req, res) => {
 
     await report.save();
 
-    return newFile.save().then((fileData) => {
+    return newFileModal.save().then((newFile) => {
       return res.status(201).json({
         success: true,
-        data: fileData,
+        data: newFile,
       });
     });
   } catch (error) {
