@@ -3,7 +3,6 @@ const util = require("util");
 const deleteFileUploadFromLocalStorage = util.promisify(fs.unlink);
 const { Upload } = require("@aws-sdk/lib-storage");
 const AWS = require("aws-sdk");
-const axios = require("axios");
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -62,7 +61,7 @@ const getFileTypes = async (req, res) => {
   });
 };
 
-const uploadParallel = async (file, pvm) => {
+const uploadParallel = async (id, file, pvm) => {
   const buffer = await fs.readFileSync(file.path);
   const start = performance.now();
 
@@ -79,9 +78,15 @@ const uploadParallel = async (file, pvm) => {
     },
   });
 
-  uploadParallel.on("httpUploadProgress", (progress) => {
-    // axios.post(`${origin}/httpUploadProgress`, { progress });
-    console.log(progress);
+  uploadParallel.on("httpUploadProgress", ({ total, loaded, ...props }) => {
+    console.log(props);
+    const progress = Math.round((100 * loaded) / total);
+
+    io.emit(id, {
+      [`p${pvm}`]: {
+        progress,
+      },
+    });
   });
 
   const { Location } = await uploadParallel.done();
@@ -94,21 +99,24 @@ const uploadParallel = async (file, pvm) => {
 };
 
 const createFile = async (req, res) => {
-  const { file } = req;
+  const {
+    file,
+    query: { id },
+  } = req;
   const { originalname, mimetype, size, path } = file;
 
   try {
     // Handle upload file S3 1 PVM
-    const { url, time: p1 } = await uploadParallel(file, 1, req.headers.origin);
+    const { url, time: p1 } = await uploadParallel(id, file, 1);
 
     // Handle upload file S3 2 PVM
-    const { time: p2 } = await uploadParallel(file, 2, req.headers.origin);
+    const { time: p2 } = await uploadParallel(id, file, 2);
 
     // Handle upload file S3 4 PVM
-    const { time: p4 } = await uploadParallel(file, 4, req.headers.origin);
+    const { time: p4 } = await uploadParallel(id, file, 4);
 
     // Handle upload file S3 8 PVM
-    const { time: p8 } = await uploadParallel(file, 8, req.headers.origin);
+    const { time: p8 } = await uploadParallel(id, file, 8);
 
     const newFile = new FileModel({
       name: originalname,
