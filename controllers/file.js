@@ -78,8 +78,7 @@ const uploadParallel = async (id, file, pvm) => {
     },
   });
 
-  uploadParallel.on("httpUploadProgress", ({ total, loaded, ...props }) => {
-    console.log(props);
+  uploadParallel.on("httpUploadProgress", ({ total, loaded }) => {
     const progress = Math.round((100 * loaded) / total);
 
     io.emit(id, {

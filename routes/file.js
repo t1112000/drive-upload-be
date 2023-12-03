@@ -1,6 +1,10 @@
 const express = require("express");
 const multer = require("multer");
-const { getFiles, createFile, deleteFile } = require("../controllers/file");
+const {
+  getFiles,
+  createFile,
+  deleteFile,
+} = require("../controllers/file-part");
 
 const router = express.Router();
 var upload = multer({ dest: "./upload/" });
